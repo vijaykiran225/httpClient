@@ -12,6 +12,10 @@ public class FormDataPartDTO {
         this.data = data;
         this.contentType = contentType;
     }
+    public FormDataPartDTO(@NotNull String keyName, @NotNull String data) {
+        this.keyName = keyName;
+        this.data = data;
+    }
 
     @NotNull
     String keyName;

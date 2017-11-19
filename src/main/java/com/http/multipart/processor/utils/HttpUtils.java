@@ -13,6 +13,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 
+import javax.validation.Valid;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,7 +41,7 @@ public class HttpUtils {
         responseObject.setResponseBody(stringBuilder.toString());
     }
 
-    public static FormBodyPart mapStringBodyPart(FormDataPartDTO dataPart) {
+    public static FormBodyPart mapStringBodyPart(@Valid FormDataPartDTO dataPart) {
         return FormBodyPartBuilder.create()
                     .setName(dataPart.getKeyName())
                     .setField("Content-Type",dataPart.getContentType())
@@ -48,7 +49,7 @@ public class HttpUtils {
                     .build();
     }
 
-    public static FormBodyPart mapFormDataPart(FilePartDTO filePart) {
+    public static FormBodyPart mapFormDataPart(@Valid FilePartDTO filePart) {
         return FormBodyPartBuilder.create()
                     .setName(filePart.getKeyName())
                     .setBody(new FileBody(filePart.getFile()))
@@ -65,5 +66,26 @@ public class HttpUtils {
         stringParts.forEach(entitybuilder::addPart);
         fileParts.forEach(entitybuilder::addPart);
         return entitybuilder.build();
+    }
+
+    public static String displayCurl(MultipartRequestObject requestObject) {
+        StringBuilder curl=new StringBuilder("curl -v -k ");
+        curl.append(requestObject.getURL());
+
+        curl.append(" -H \"Content-type:"+requestObject.getContentType()+"\" ");
+
+        requestObject.getHeaders().forEach((key,value) -> {
+            curl.append(" -H \""+key+":"+value+"\" ");
+        });
+
+        requestObject.getDataBody().forEach(value -> {
+            curl.append(" -F \""+value.getKeyName()+"="+value.getData()+";type="+value.getContentType()+"\" ");
+        });
+
+        requestObject.getFileBody().forEach(value -> {
+            curl.append(" -F \""+value.getKeyName()+"=@"+value.getFile().getAbsolutePath()+"\" ");
+        });
+
+        return curl.toString();
     }
 }
