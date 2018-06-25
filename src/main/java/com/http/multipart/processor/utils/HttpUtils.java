@@ -4,6 +4,7 @@ import com.http.multipart.request.FilePartDTO;
 import com.http.multipart.request.FormDataPartDTO;
 import com.http.multipart.request.MultipartRequestObject;
 import com.http.multipart.response.MultipartResponseObject;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.ContentType;
@@ -17,10 +18,7 @@ import javax.validation.Valid;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -87,5 +85,58 @@ public class HttpUtils {
         });
 
         return curl.toString();
+    }
+
+    public static String getMultipartRawBody(MultipartRequestObject requestObject) {
+
+
+        final String boundary = UUID.randomUUID().toString();
+        StringBuilder request = new StringBuilder();
+
+        request.append("--");
+        request.append(boundary);
+        requestObject.getDataBody().forEach(aPart -> {
+            request.append("\r\n");
+            request.append("Content-Disposition: form-data; ");
+            request.append("name=");
+            request.append(aPart.getKeyName());
+            request.append(";");
+            request.append("\r\n");
+            request.append("Content-Type: ");
+            request.append(aPart.getContentType());
+            request.append("\r\n");
+            request.append("\r\n");
+            request.append(aPart.getData());
+            request.append("\r\n");
+            request.append("--");
+            request.append(boundary);
+        });
+        requestObject.getFileBody().forEach(aPart -> {
+            request.append("\r\n");
+            request.append("Content-Disposition: form-data; ");
+            request.append("name=");
+            request.append(aPart.getKeyName());
+            request.append(";");
+            request.append("filename=");
+            request.append(aPart.getFileName());
+            request.append(";");
+            request.append("\r\n");
+            request.append("Content-Type: application/octet-stream");
+            request.append("\r\n");
+            request.append("\r\n");
+            try {
+                request.append(FileUtils.readFileToString(aPart.getFile()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            request.append("\r\n");
+            request.append("--");
+            request.append(boundary);
+        });
+
+        request.append("--\r\n");
+        final String body = request.toString();
+        System.out.println(body);
+        return body;
     }
 }

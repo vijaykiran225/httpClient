@@ -1,5 +1,9 @@
 package com.http.multipart.request;
 
+import io.vertx.core.impl.StringEscapeUtils;
+import io.vertx.core.impl.Utils;
+import org.apache.commons.codec.binary.StringUtils;
+
 import java.net.URI;
 import java.util.*;
 import java.util.function.Predicate;
